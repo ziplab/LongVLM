@@ -80,7 +80,8 @@ python longvlm/eval/run_inference_benchmark.py \
     --gt_file ${GT_FILE} \
     --output_dir ${OUTPUT_DIR} \
     --output_name anet_generic_qa \
-    --model-name ${PRETRAINED_PATH}
+    --model-name ${PRETRAINED_PATH} \
+    --projection_path ${PROJ_PATH}
 
 
 ### FOR evaluation
