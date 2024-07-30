@@ -8,7 +8,7 @@ from PIL import Image
 from tqdm import tqdm
 from decord import VideoReader, cpu
 from transformers import CLIPVisionModel, CLIPImageProcessor
-from longvlm.merge import merge_tokens 
+from longvlm.model.merge import merge_tokens
 
 
 
@@ -58,6 +58,7 @@ def parse_args():
     parser.add_argument("--clip_feat_path_memory", required=True, help="The output dir to save the memory features.")
     parser.add_argument("--pretrained_path", default="./pretrained/clip-vit-large-patch14", help="Path to load the model config from." )
     parser.add_argument("--list_file", default="./datasets/anet/v1-2_val_subset_split1.txt", help="Path to the video list." )
+    parser.add_argument("--infer_batch", default=1, help="Inference batch size." )
     args = parser.parse_args()
 
     return args

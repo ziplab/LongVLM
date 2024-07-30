@@ -5,7 +5,6 @@ import argparse
 import json
 from tqdm import tqdm
 import pickle
-from longvlm.eval.model_utils import initialize_model
 from transformers import AutoTokenizer
 from longvlm.utils import disable_torch_init
 from longvlm.constants import *
@@ -56,15 +55,20 @@ def initialize_model(llm_model, model_name, projection_path=None): #, args=None)
     Returns:
     tuple: Model, vision tower, tokenizer, image processor, vision config, and video token length.
     """
+    # Dynamically check is needed
+    def get_device_map() -> str:
+        return 'cuda' if torch.cuda.is_available() else 'cpu'
+    device = get_device_map()
+
     # Disable initial torch operations
     disable_torch_init()
 
     # Convert model name to user path
     model_name = os.path.expanduser(model_name)
     # Load tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    tokenizer = AutoTokenizer.from_pretrained(model_name, device_map=device)
     # Load model
-    model = model_dict[llm_model].from_pretrained(model_name, low_cpu_mem_usage=True, torch_dtype=torch.float16, use_cache=True)
+    model = model_dict[llm_model].from_pretrained(model_name, low_cpu_mem_usage=True, torch_dtype=torch.float16, use_cache=True, device_map=device)
     # print(model)
     mm_use_vid_start_end = True
     # Add tokens to tokenizer
@@ -76,9 +80,10 @@ def initialize_model(llm_model, model_name, projection_path=None): #, args=None)
     model.resize_token_embeddings(len(tokenizer))
 
     # Load the weights from projection_path after resizing the token_embeddings
+
     if projection_path:
         print(f"Loading weights from {projection_path}")
-        status = model.load_state_dict(torch.load(projection_path, map_location='cpu'), strict=False)
+        status = model.load_state_dict(torch.load(projection_path, map_location=device), strict=False)
         if status.unexpected_keys:
             print(f"Unexpected Keys: {status.unexpected_keys}.\nThe model weights are not loaded correctly.")
         print(f"Weights loaded from {projection_path}")
